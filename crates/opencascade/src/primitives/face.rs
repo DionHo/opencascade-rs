@@ -365,6 +365,14 @@ impl Face {
         CompoundFace::from_compound(compound)
     }
 
+    /// Name of the underlying Geom surface type, e.g. "Geom_Plane" or
+    /// "Geom_CylindricalSurface". Useful for selector heuristics.
+    pub fn surface_type_name(&self) -> String {
+        let surface = ffi::b_rep::BRep_Tool_Surface(&self.inner);
+        let dynamic_type = ffi::geom::DynamicType(&surface);
+        ffi::standard::type_name(dynamic_type)
+    }
+
     pub fn surface_area(&self) -> f64 {
         let mut props = ffi::g_prop::GProps_new();
 
