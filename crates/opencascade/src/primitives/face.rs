@@ -368,9 +368,7 @@ impl Face {
     /// Name of the underlying Geom surface type, e.g. "Geom_Plane" or
     /// "Geom_CylindricalSurface". Useful for selector heuristics.
     pub fn surface_type_name(&self) -> String {
-        let surface = ffi::b_rep::BRep_Tool_Surface(&self.inner);
-        let dynamic_type = ffi::geom::DynamicType(&surface);
-        ffi::standard::type_name(dynamic_type)
+        ffi::b_rep::BRep_Tool_surface_type_name(&self.inner)
     }
 
     pub fn surface_area(&self) -> f64 {

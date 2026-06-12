@@ -30,3 +30,11 @@ inline std::unique_ptr<Handle_Poly_Triangulation> BRep_Tool_Triangulation(const 
   return std::unique_ptr<Handle_Poly_Triangulation>(
       new Handle_Poly_Triangulation(BRep_Tool::Triangulation(face, location)));
 }
+
+// Returns the Geom surface type name directly. (Going through the
+// DynamicType shim is broken on MSVC: Handle_X is a distinct class there,
+// so binding its const& to the returned handle<X> creates a temporary and
+// the shim returns a dangling reference.)
+inline rust::String BRep_Tool_surface_type_name(const TopoDS_Face &face) {
+  return std::string(BRep_Tool::Surface(face)->DynamicType()->Name());
+}

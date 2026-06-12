@@ -22,6 +22,7 @@ mod inner {
 
         type BRep_Tool;
         pub fn BRep_Tool_Surface(face: &TopoDS_Face) -> UniquePtr<Handle_Geom_Surface>;
+        pub fn BRep_Tool_surface_type_name(face: &TopoDS_Face) -> String;
         pub fn BRep_Tool_Curve(
             edge: &TopoDS_Edge,
             first: &mut f64,
