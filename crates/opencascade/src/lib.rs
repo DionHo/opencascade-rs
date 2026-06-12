@@ -13,6 +13,8 @@ mod make_pipe_shell;
 
 #[derive(Error, Debug)]
 pub enum Error {
+    #[error("kernel operation failed: {0}")]
+    KernelError(#[from] cxx::Exception),
     #[error("failed to write STL file")]
     StlWriteFailed,
     #[error("failed to read STEP file")]

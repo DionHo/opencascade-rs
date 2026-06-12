@@ -47,6 +47,9 @@ fn main() {
 
     if is_windows {
         println!("cargo:rustc-link-lib=dylib=user32");
+        // OCCT's OSD layer uses Win32 security APIs (SIDs, ACLs, file
+        // security). Rust no longer links advapi32 by default.
+        println!("cargo:rustc-link-lib=dylib=advapi32");
     }
 
     // TODO(bschwind) - Iterate over the src/ directory to populate this.

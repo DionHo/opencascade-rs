@@ -7,7 +7,7 @@
 
 inline std::unique_ptr<Handle_TopTools_HSequenceOfShape> new_Handle_TopTools_HSequenceOfShape() {
   auto sequence = new TopTools_HSequenceOfShape();
-  auto handle = new opencascade::handle<TopTools_HSequenceOfShape>(sequence);
+  auto handle = new Handle_TopTools_HSequenceOfShape(sequence);
 
   return std::unique_ptr<Handle_TopTools_HSequenceOfShape>(handle);
 }
@@ -23,4 +23,12 @@ inline Standard_Integer TopTools_HSequenceOfShape_length(const Handle_TopTools_H
 inline const TopoDS_Shape &TopTools_HSequenceOfShape_value(const Handle_TopTools_HSequenceOfShape &handle,
                                                            Standard_Integer index) {
   return handle->Value(index);
+}
+
+// MSVC: exact overload for the bridge's function-pointer binding (see poly.hxx).
+inline const TopTools_HSequenceOfShape &handle_try_deref(const Handle_TopTools_HSequenceOfShape &handle) {
+  if (handle.IsNull()) {
+    throw std::runtime_error("null handle dereference");
+  }
+  return *handle;
 }

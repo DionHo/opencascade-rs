@@ -23,3 +23,23 @@ template <typename T> const T &handle_try_deref(const opencascade::handle<T> &ha
   }
   return *handle;
 }
+
+// cxx's default trycatch only catches std::exception. OCCT's exception
+// hierarchy (Standard_Failure: StdFail_NotDone, Standard_DomainError, ...)
+// derives from Standard_Transient instead, so kernel exceptions crossing a
+// Result-returning bridge fn would otherwise std::terminate. This is the
+// cxx-documented customization point; it converts them to Rust Err values.
+#include <Standard_Failure.hxx>
+
+namespace rust {
+namespace behavior {
+template <typename Try, typename Fail> static void trycatch(Try &&func, Fail &&fail) noexcept try {
+  func();
+} catch (const Standard_Failure &failure) {
+  const char *msg = failure.GetMessageString();
+  fail((msg != nullptr && msg[0] != '\0') ? msg : failure.DynamicType()->Name());
+} catch (const std::exception &e) {
+  fail(e.what());
+}
+} // namespace behavior
+} // namespace rust

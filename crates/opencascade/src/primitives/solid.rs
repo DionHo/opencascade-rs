@@ -34,7 +34,7 @@ impl Solid {
         let mut make_fillet = ffi::b_rep_fillet_api::BRepFilletAPI_MakeFillet_new(inner_shape);
         make_fillet.pin_mut().add_edge(radius, &edge.inner);
 
-        let filleted_shape = make_fillet.pin_mut().Shape();
+        let filleted_shape = make_fillet.pin_mut().Shape().expect("fillet failed");
 
         let compound = ffi::topo_ds::TopoDS::Compound(filleted_shape);
 

@@ -467,6 +467,21 @@ impl Shape {
     }
 
     #[must_use]
+    pub fn try_fillet_edges<T: AsRef<Edge>>(
+        &self,
+        radius: f64,
+        edges: impl IntoIterator<Item = T>,
+    ) -> Result<Self, Error> {
+        let mut make_fillet = ffi::b_rep_fillet_api::BRepFilletAPI_MakeFillet_new(&self.inner);
+
+        for edge in edges.into_iter() {
+            make_fillet.pin_mut().add_edge(radius, &edge.as_ref().inner);
+        }
+
+        Ok(Self::from_shape(make_fillet.pin_mut().Shape()?))
+    }
+
+    #[must_use]
     pub fn fillet_edges<T: AsRef<Edge>>(
         &self,
         radius: f64,
@@ -478,7 +493,7 @@ impl Shape {
             make_fillet.pin_mut().add_edge(radius, &edge.as_ref().inner);
         }
 
-        Self::from_shape(make_fillet.pin_mut().Shape())
+        Self::from_shape(make_fillet.pin_mut().Shape().expect("fillet failed"))
     }
 
     #[must_use]
@@ -500,7 +515,7 @@ impl Shape {
             make_fillet.pin_mut().variable_add_edge(&array, &edge.as_ref().inner);
         }
 
-        Self::from_shape(make_fillet.pin_mut().Shape())
+        Self::from_shape(make_fillet.pin_mut().Shape().expect("fillet failed"))
     }
 
     #[must_use]

@@ -21,3 +21,13 @@ inline std::unique_ptr<gp_Pnt2d> Poly_Triangulation_UV(const Poly_Triangulation 
                                                        const Standard_Integer index) {
   return std::unique_ptr<gp_Pnt2d>(new gp_Pnt2d(triangulation.UVNode(index)));
 }
+
+// MSVC: Handle_X is a distinct class derived from opencascade::handle<X>, so
+// template argument deduction for handle_try_deref<T> fails when the bridge
+// binds it with a Handle_X function-pointer signature. Exact overload:
+inline const Poly_Triangulation &handle_try_deref(const Handle_Poly_Triangulation &handle) {
+  if (handle.IsNull()) {
+    throw std::runtime_error("null handle dereference");
+  }
+  return *handle;
+}
