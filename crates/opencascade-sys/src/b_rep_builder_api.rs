@@ -119,7 +119,7 @@ mod inner {
             transform: &gp_Trsf,
             copy: bool,
         ) -> UniquePtr<BRepBuilderAPI_Transform>;
-        pub fn Shape(self: Pin<&mut BRepBuilderAPI_Transform>) -> &TopoDS_Shape;
+        pub fn Shape(self: Pin<&mut BRepBuilderAPI_Transform>) -> Result<&TopoDS_Shape>;
         pub fn Build(self: Pin<&mut BRepBuilderAPI_Transform>, progress: &Message_ProgressRange);
         pub fn IsDone(self: &BRepBuilderAPI_Transform) -> bool;
 

@@ -75,7 +75,7 @@ impl Solid {
             new_edges.push(Edge::from_edge(edge));
         }
 
-        let shape = Shape::from_shape(cut_operation.pin_mut().Shape());
+        let shape = Shape::from_shape(cut_operation.pin_mut().Shape().expect("boolean failed"));
 
         BooleanShape { shape, new_edges }
     }
@@ -96,7 +96,7 @@ impl Solid {
             new_edges.push(Edge::from_edge(edge));
         }
 
-        let shape = Shape::from_shape(fuse_operation.pin_mut().Shape());
+        let shape = Shape::from_shape(fuse_operation.pin_mut().Shape().expect("boolean failed"));
 
         BooleanShape { shape, new_edges }
     }
@@ -117,7 +117,7 @@ impl Solid {
             new_edges.push(Edge::from_edge(edge));
         }
 
-        let shape = Shape::from_shape(fuse_operation.pin_mut().Shape());
+        let shape = Shape::from_shape(fuse_operation.pin_mut().Shape().expect("boolean failed"));
 
         BooleanShape { shape, new_edges }
     }

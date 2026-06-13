@@ -32,7 +32,7 @@ mod inner {
             angle: f64,
             copy: bool,
         ) -> UniquePtr<BRepPrimAPI_MakeRevol>;
-        pub fn Shape(self: Pin<&mut BRepPrimAPI_MakeRevol>) -> &TopoDS_Shape;
+        pub fn Shape(self: Pin<&mut BRepPrimAPI_MakeRevol>) -> Result<&TopoDS_Shape>;
         pub fn Build(self: Pin<&mut BRepPrimAPI_MakeRevol>, progress: &Message_ProgressRange);
         pub fn IsDone(self: &BRepPrimAPI_MakeRevol) -> bool;
 

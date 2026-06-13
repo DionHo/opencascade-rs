@@ -573,9 +573,45 @@ impl Shape {
             new_edges.push(Edge::from_edge(edge));
         }
 
-        let shape = Self::from_shape(cut_operation.pin_mut().Shape());
+        let shape = Self::from_shape(cut_operation.pin_mut().Shape().expect("boolean failed"));
 
         BooleanShape { shape, new_edges }
+    }
+
+    #[must_use]
+    pub fn try_subtract(&self, other: &Shape) -> Result<BooleanShape, Error> {
+        let mut cut_operation = ffi::b_rep_algo_api::BRepAlgoAPI_Cut_new(&self.inner, &other.inner);
+        let vec = ffi::topo_ds::shape_list_to_vector(cut_operation.pin_mut().SectionEdges());
+        let mut new_edges = vec![];
+        for shape in vec.iter() {
+            new_edges.push(Edge::from_edge(ffi::topo_ds::TopoDS::Edge(shape)));
+        }
+        let shape = Self::from_shape(cut_operation.pin_mut().Shape()?);
+        Ok(BooleanShape { shape, new_edges })
+    }
+
+    #[must_use]
+    pub fn try_union(&self, other: &Shape) -> Result<BooleanShape, Error> {
+        let mut fuse_operation = ffi::b_rep_algo_api::BRepAlgoAPI_Fuse_new(&self.inner, &other.inner);
+        let vec = ffi::topo_ds::shape_list_to_vector(fuse_operation.pin_mut().SectionEdges());
+        let mut new_edges = vec![];
+        for shape in vec.iter() {
+            new_edges.push(Edge::from_edge(ffi::topo_ds::TopoDS::Edge(shape)));
+        }
+        let shape = Self::from_shape(fuse_operation.pin_mut().Shape()?);
+        Ok(BooleanShape { shape, new_edges })
+    }
+
+    #[must_use]
+    pub fn try_intersect(&self, other: &Shape) -> Result<BooleanShape, Error> {
+        let mut common_operation = ffi::b_rep_algo_api::BRepAlgoAPI_Common_new(&self.inner, &other.inner);
+        let vec = ffi::topo_ds::shape_list_to_vector(common_operation.pin_mut().SectionEdges());
+        let mut new_edges = vec![];
+        for shape in vec.iter() {
+            new_edges.push(Edge::from_edge(ffi::topo_ds::TopoDS::Edge(shape)));
+        }
+        let shape = Self::from_shape(common_operation.pin_mut().Shape()?);
+        Ok(BooleanShape { shape, new_edges })
     }
 
     pub fn read_step(path: impl AsRef<Path>) -> Result<Self, Error> {
@@ -731,7 +767,7 @@ impl Shape {
             new_edges.push(Edge::from_edge(edge));
         }
 
-        let shape = Self::from_shape(fuse_operation.pin_mut().Shape());
+        let shape = Self::from_shape(fuse_operation.pin_mut().Shape().expect("boolean failed"));
 
         BooleanShape { shape, new_edges }
     }
@@ -749,7 +785,7 @@ impl Shape {
             new_edges.push(Edge::from_edge(edge));
         }
 
-        let shape = Self::from_shape(fuse_operation.pin_mut().Shape());
+        let shape = Self::from_shape(fuse_operation.pin_mut().Shape().expect("boolean failed"));
 
         BooleanShape { shape, new_edges }
     }
@@ -854,30 +890,40 @@ impl Shape {
     }
 
     /// Create a transformed copy of this shape using a `gp_Trsf` configured by `configure`.
-    fn with_transform(&self, configure: impl FnOnce(Pin<&mut ffi::gp::gp_Trsf>)) -> Self {
+    fn with_transform(&self, configure: impl FnOnce(Pin<&mut ffi::gp::gp_Trsf>)) -> Result<Self, Error> {
         let mut transform = ffi::gp::new_transform();
         configure(transform.pin_mut());
         let mut brep =
             ffi::b_rep_builder_api::BRepBuilderAPI_Transform_new(&self.inner, &transform, true);
-        Self::from_shape(brep.pin_mut().Shape())
+        Ok(Self::from_shape(brep.pin_mut().Shape()?))
     }
 
-    /// Create a translated copy of this shape.
-    #[must_use]
-    pub fn translated(&self, offset: DVec3) -> Self {
+    /// Fallible translated copy.
+    pub fn try_translated(&self, offset: DVec3) -> Result<Self, Error> {
         self.with_transform(|trsf| {
             let translation_vec = make_vec(offset);
             trsf.set_translation_vec(&translation_vec);
         })
     }
 
+    /// Fallible rotated copy about an arbitrary axis (origin + direction).
+    pub fn try_rotated(&self, origin: DVec3, axis: DVec3, angle: f64) -> Result<Self, Error> {
+        self.with_transform(|trsf| {
+            let axis_1 = make_axis_1(origin, axis);
+            trsf.SetRotation(&axis_1, angle);
+        })
+    }
+
+    /// Create a translated copy of this shape.
+    #[must_use]
+    pub fn translated(&self, offset: DVec3) -> Self {
+        self.try_translated(offset).expect("translate failed")
+    }
+
     /// Create a rotated copy of this shape about an axis through the origin.
     #[must_use]
     pub fn rotated(&self, axis: DVec3, angle: f64) -> Self {
-        self.with_transform(|trsf| {
-            let axis_1 = make_axis_1(DVec3::ZERO, axis);
-            trsf.SetRotation(&axis_1, angle);
-        })
+        self.try_rotated(DVec3::ZERO, axis, angle).expect("rotate failed")
     }
 
     /// Create a scaled copy of this shape about a point.
@@ -887,6 +933,7 @@ impl Shape {
             let pnt = make_point(point);
             trsf.SetScale(&pnt, factor);
         })
+        .expect("scale failed")
     }
 
     /// Create a mirrored copy of this shape about an axis.
@@ -896,6 +943,7 @@ impl Shape {
             let axis_1 = make_axis_1(origin, dir);
             trsf.set_mirror_axis(&axis_1);
         })
+        .expect("mirror failed")
     }
 
     #[must_use]

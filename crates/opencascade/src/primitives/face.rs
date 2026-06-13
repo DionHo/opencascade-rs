@@ -122,10 +122,20 @@ impl Face {
         let inner_shape = ffi::topo_ds::cast_face_to_shape(&self.inner);
         let mut make_solid =
             ffi::b_rep_prim_api::BRepPrimAPI_MakeRevol_new(inner_shape, &revol_vec, angle, copy);
-        let revolved_shape = make_solid.pin_mut().Shape();
+        let revolved_shape = make_solid.pin_mut().Shape().expect("revolve failed");
         let solid = ffi::topo_ds::TopoDS::Solid(revolved_shape);
 
         Solid::from_solid(solid)
+    }
+
+    #[must_use]
+    pub fn try_revolve(&self, origin: DVec3, axis: DVec3, angle_radians: f64) -> Result<Solid, crate::Error> {
+        let revol_vec = make_axis_1(origin, axis);
+        let inner_shape = ffi::topo_ds::cast_face_to_shape(&self.inner);
+        let mut make_solid =
+            ffi::b_rep_prim_api::BRepPrimAPI_MakeRevol_new(inner_shape, &revol_vec, angle_radians, false);
+        let revolved_shape = make_solid.pin_mut().Shape()?;
+        Ok(Solid::from_solid(ffi::topo_ds::TopoDS::Solid(revolved_shape)))
     }
 
     /// Fillets the face edges by a given radius at each vertex
@@ -329,7 +339,7 @@ impl Face {
         let mut fuse_operation =
             ffi::b_rep_algo_api::BRepAlgoAPI_Fuse_new(inner_shape, other_inner_shape);
 
-        let fuse_shape = fuse_operation.pin_mut().Shape();
+        let fuse_shape = fuse_operation.pin_mut().Shape().expect("boolean failed");
 
         let compound = ffi::topo_ds::TopoDS::Compound(fuse_shape);
 
@@ -344,7 +354,7 @@ impl Face {
         let mut common_operation =
             ffi::b_rep_algo_api::BRepAlgoAPI_Common_new(inner_shape, other_inner_shape);
 
-        let common_shape = common_operation.pin_mut().Shape();
+        let common_shape = common_operation.pin_mut().Shape().expect("boolean failed");
 
         let compound = ffi::topo_ds::TopoDS::Compound(common_shape);
 
@@ -358,7 +368,7 @@ impl Face {
         let mut fuse_operation =
             ffi::b_rep_algo_api::BRepAlgoAPI_Cut_new(inner_shape, other_inner_shape);
 
-        let cut_shape = fuse_operation.pin_mut().Shape();
+        let cut_shape = fuse_operation.pin_mut().Shape().expect("boolean failed");
 
         let compound = ffi::topo_ds::TopoDS::Compound(cut_shape);
 
@@ -468,7 +478,7 @@ impl CompoundFace {
 
         let mut make_solid =
             ffi::b_rep_prim_api::BRepPrimAPI_MakeRevol_new(inner_shape, &revol_axis, angle, copy);
-        let revolved_shape = make_solid.pin_mut().Shape();
+        let revolved_shape = make_solid.pin_mut().Shape().expect("revolve failed");
 
         Shape::from_shape(revolved_shape)
     }
@@ -481,7 +491,7 @@ impl CompoundFace {
         let mut fuse_operation =
             ffi::b_rep_algo_api::BRepAlgoAPI_Fuse_new(inner_shape, other_inner_shape);
 
-        let fuse_shape = fuse_operation.pin_mut().Shape();
+        let fuse_shape = fuse_operation.pin_mut().Shape().expect("boolean failed");
 
         let compound = ffi::topo_ds::TopoDS::Compound(fuse_shape);
 
@@ -496,7 +506,7 @@ impl CompoundFace {
         let mut common_operation =
             ffi::b_rep_algo_api::BRepAlgoAPI_Common_new(inner_shape, other_inner_shape);
 
-        let common_shape = common_operation.pin_mut().Shape();
+        let common_shape = common_operation.pin_mut().Shape().expect("boolean failed");
 
         let compound = ffi::topo_ds::TopoDS::Compound(common_shape);
 
@@ -511,7 +521,7 @@ impl CompoundFace {
         let mut fuse_operation =
             ffi::b_rep_algo_api::BRepAlgoAPI_Cut_new(inner_shape, other_inner_shape);
 
-        let cut_shape = fuse_operation.pin_mut().Shape();
+        let cut_shape = fuse_operation.pin_mut().Shape().expect("boolean failed");
 
         let compound = ffi::topo_ds::TopoDS::Compound(cut_shape);
 

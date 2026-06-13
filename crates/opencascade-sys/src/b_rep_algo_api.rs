@@ -19,7 +19,7 @@ mod inner {
             shape_1: &TopoDS_Shape,
             shape_2: &TopoDS_Shape,
         ) -> UniquePtr<BRepAlgoAPI_Fuse>;
-        pub fn Shape(self: Pin<&mut BRepAlgoAPI_Fuse>) -> &TopoDS_Shape;
+        pub fn Shape(self: Pin<&mut BRepAlgoAPI_Fuse>) -> Result<&TopoDS_Shape>;
         pub fn Build(self: Pin<&mut BRepAlgoAPI_Fuse>, progress: &Message_ProgressRange);
         pub fn IsDone(self: &BRepAlgoAPI_Fuse) -> bool;
         pub fn SectionEdges(self: Pin<&mut BRepAlgoAPI_Fuse>) -> &TopTools_ListOfShape;
@@ -31,7 +31,7 @@ mod inner {
             shape_1: &TopoDS_Shape,
             shape_2: &TopoDS_Shape,
         ) -> UniquePtr<BRepAlgoAPI_Cut>;
-        pub fn Shape(self: Pin<&mut BRepAlgoAPI_Cut>) -> &TopoDS_Shape;
+        pub fn Shape(self: Pin<&mut BRepAlgoAPI_Cut>) -> Result<&TopoDS_Shape>;
         pub fn Build(self: Pin<&mut BRepAlgoAPI_Cut>, progress: &Message_ProgressRange);
         pub fn IsDone(self: &BRepAlgoAPI_Cut) -> bool;
         pub fn Generated<'a>(
@@ -46,7 +46,7 @@ mod inner {
             shape_1: &TopoDS_Shape,
             shape_2: &TopoDS_Shape,
         ) -> UniquePtr<BRepAlgoAPI_Common>;
-        pub fn Shape(self: Pin<&mut BRepAlgoAPI_Common>) -> &TopoDS_Shape;
+        pub fn Shape(self: Pin<&mut BRepAlgoAPI_Common>) -> Result<&TopoDS_Shape>;
         pub fn Build(self: Pin<&mut BRepAlgoAPI_Common>, progress: &Message_ProgressRange);
         pub fn IsDone(self: &BRepAlgoAPI_Common) -> bool;
         pub fn SectionEdges(self: Pin<&mut BRepAlgoAPI_Common>) -> &TopTools_ListOfShape;

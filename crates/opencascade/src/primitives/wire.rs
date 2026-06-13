@@ -143,7 +143,7 @@ impl Wire {
         let mut brep_transform =
             ffi::b_rep_builder_api::BRepBuilderAPI_Transform_new(wire_shape, &transform, false);
 
-        let mirrored_shape = brep_transform.pin_mut().Shape();
+        let mirrored_shape = brep_transform.pin_mut().Shape().expect("transform failed");
         let mirrored_wire = ffi::topo_ds::TopoDS::Wire(mirrored_shape);
 
         Self::from_wire(mirrored_wire)
