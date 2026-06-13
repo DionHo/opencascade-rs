@@ -519,6 +519,21 @@ impl Shape {
     }
 
     #[must_use]
+    pub fn try_chamfer_edges<T: AsRef<Edge>>(
+        &self,
+        distance: f64,
+        edges: impl IntoIterator<Item = T>,
+    ) -> Result<Self, Error> {
+        let mut make_chamfer = ffi::b_rep_fillet_api::BRepFilletAPI_MakeChamfer_new(&self.inner);
+
+        for edge in edges.into_iter() {
+            make_chamfer.pin_mut().add_edge(distance, &edge.as_ref().inner);
+        }
+
+        Ok(Self::from_shape(make_chamfer.pin_mut().Shape()?))
+    }
+
+    #[must_use]
     pub fn chamfer_edges<T: AsRef<Edge>>(
         &self,
         distance: f64,
@@ -530,7 +545,7 @@ impl Shape {
             make_chamfer.pin_mut().add_edge(distance, &edge.as_ref().inner);
         }
 
-        Self::from_shape(make_chamfer.pin_mut().Shape())
+        Self::from_shape(make_chamfer.pin_mut().Shape().expect("chamfer failed"))
     }
 
     /// Performs fillet of `radius` on all edges of the shape
@@ -972,7 +987,7 @@ impl ChamferMaker {
     }
 
     pub fn build(mut self) -> Shape {
-        Shape::from_shape(self.inner.pin_mut().Shape())
+        Shape::from_shape(self.inner.pin_mut().Shape().expect("chamfer failed"))
     }
 }
 
