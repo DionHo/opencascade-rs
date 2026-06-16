@@ -31,6 +31,8 @@ mod inner {
     }
 }
 
-// Single-threaded use (created/read/dropped within one measure call), but match
-// the fork's convention (BRepFilletAPI_MakeChamfer is Send) for safety.
+// Send is needed because the dss may be constructed and read inside a kernel
+// call that runs on a worker thread (cad-mcp's --measure-worker); safe because
+// it is created, read, and dropped within one logical call and never shared
+// across threads. Mirrors BRepFilletAPI_MakeChamfer.
 unsafe impl Send for inner::BRepExtrema_DistShapeShape {}
