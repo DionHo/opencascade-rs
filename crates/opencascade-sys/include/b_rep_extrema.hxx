@@ -12,7 +12,10 @@
 // the cad-mcp --measure-worker subprocess.)
 inline std::unique_ptr<BRepExtrema_DistShapeShape>
 BRepExtrema_DistShapeShape_new(const TopoDS_Shape &shape1, const TopoDS_Shape &shape2) {
-  return std::make_unique<BRepExtrema_DistShapeShape>(shape1, shape2);
+  // unique_ptr(new …), not make_unique: the cxx bridge compiles with -std=c++11
+  // (make_unique is C++14) — match the fork's construct_unique idiom.
+  return std::unique_ptr<BRepExtrema_DistShapeShape>(
+      new BRepExtrema_DistShapeShape(shape1, shape2));
 }
 
 // PointOnShape1/2(N) return a `const gp_Pnt&` into the dss's solution arrays.
@@ -21,10 +24,10 @@ BRepExtrema_DistShapeShape_new(const TopoDS_Shape &shape1, const TopoDS_Shape &s
 // pattern). Safe because the caller keeps `dss` alive across this call.
 inline std::unique_ptr<gp_Pnt>
 BRepExtrema_DistShapeShape_point_on_shape1(const BRepExtrema_DistShapeShape &dss, int n) {
-  return std::make_unique<gp_Pnt>(dss.PointOnShape1(n));
+  return std::unique_ptr<gp_Pnt>(new gp_Pnt(dss.PointOnShape1(n)));
 }
 
 inline std::unique_ptr<gp_Pnt>
 BRepExtrema_DistShapeShape_point_on_shape2(const BRepExtrema_DistShapeShape &dss, int n) {
-  return std::make_unique<gp_Pnt>(dss.PointOnShape2(n));
+  return std::unique_ptr<gp_Pnt>(new gp_Pnt(dss.PointOnShape2(n)));
 }
