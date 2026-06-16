@@ -59,6 +59,7 @@ fn main() {
         "src/b_rep_algo_api.rs",
         "src/b_rep_bnd_lib.rs",
         "src/b_rep_builder_api.rs",
+        "src/b_rep_extrema.rs",
         "src/b_rep_feat.rs",
         "src/b_rep_fillet_api.rs",
         "src/b_rep_g_prop.rs",

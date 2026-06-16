@@ -274,6 +274,17 @@ impl TorusBuilder {
     }
 }
 
+/// Result of a minimum-distance query between two shapes.
+#[derive(Debug, Clone, Copy)]
+pub struct MinDistance {
+    /// Minimum distance between the two shapes (0.0 if they touch/intersect).
+    pub distance: f64,
+    /// The closest point on `self`.
+    pub point_a: DVec3,
+    /// The closest point on `other`.
+    pub point_b: DVec3,
+}
+
 impl Shape {
     #[must_use]
     pub fn as_wire(&self) -> Option<Wire> {
@@ -612,6 +623,25 @@ impl Shape {
         }
         let shape = Self::from_shape(common_operation.pin_mut().Shape()?);
         Ok(BooleanShape { shape, new_edges })
+    }
+
+    /// Minimum distance between `self` and `other` via BRepExtrema_DistShapeShape.
+    /// Fallible: a caught Standard_Failure → Err(KernelError); no solution →
+    /// Err(NoExtremaSolution).
+    pub fn min_distance(&self, other: &Shape) -> Result<MinDistance, Error> {
+        let dss = ffi::b_rep_extrema::BRepExtrema_DistShapeShape_new(&self.inner, &other.inner)?;
+        if !dss.IsDone() || dss.NbSolution() < 1 {
+            return Err(Error::NoExtremaSolution);
+        }
+        let distance = dss.Value()?;
+        // Solutions are 1-indexed in OCCT; take the first (global minimum).
+        let pa = ffi::b_rep_extrema::BRepExtrema_DistShapeShape_point_on_shape1(&dss, 1);
+        let pb = ffi::b_rep_extrema::BRepExtrema_DistShapeShape_point_on_shape2(&dss, 1);
+        Ok(MinDistance {
+            distance,
+            point_a: dvec3(pa.X(), pa.Y(), pa.Z()),
+            point_b: dvec3(pb.X(), pb.Y(), pb.Z()),
+        })
     }
 
     pub fn read_step(path: impl AsRef<Path>) -> Result<Self, Error> {
